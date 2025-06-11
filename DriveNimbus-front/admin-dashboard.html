@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Admin Dashboard - DriveNimbus</title>
+  <link rel="stylesheet" href="style/admin-dashboard.css" />
+
+</head>
+<body>
+
+  <header>
+    <h1>DriveNimbus Admin Dashboard</h1>
+  </header>
+
+  <div class="tab-buttons">
+    <button class="tab-btn active" data-tab="bookings">Bookings</button>
+    <button class="tab-btn" data-tab="cars">Cars</button>
+    <button class="tab-btn" data-tab="users">Users</button>
+  </div>
+
+  <div id="bookings" class="tab-content active">
+    <iframe src="admin-booking.html"></iframe>
+  </div>
+  <div id="cars" class="tab-content">
+    <iframe src="admin-cars.html"></iframe>
+  </div>
+  <div id="users" class="tab-content">
+    <iframe src="admin-users.html"></iframe>
+  </div>
+
+  <script>
+    const tabs = document.querySelectorAll(".tab-btn");
+    const contents = document.querySelectorAll(".tab-content");
+
+    tabs.forEach(btn => {
+      btn.addEventListener("click", () => {
+        // Remove active from all
+        tabs.forEach(t => t.classList.remove("active"));
+        contents.forEach(c => c.classList.remove("active"));
+
+        // Activate selected
+        btn.classList.add("active");
+        const target = document.getElementById(btn.dataset.tab);
+        if (target) target.classList.add("active");
+      });
+    });
+  </script>
+
+</body>
+</html>

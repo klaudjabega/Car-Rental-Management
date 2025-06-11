@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Welcome | Drive Nimbus Rental</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f2f6f9;
+    }
+
+    header {
+      background-color: #e9f1f9;
+      padding: 20px 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo h1 {
+      color: #3C91E6;
+      font-size: 1.8rem;
+    }
+
+    .nav-links a {
+      margin-left: 20px;
+      text-decoration: none;
+      color: #333;
+      font-weight: 500;
+    }
+
+    .hero {
+      position: relative;
+      width: 100%;
+      height: 90vh;
+      background: url('https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1600&q=80') no-repeat center center/cover;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+
+    .hero-text {
+      background-color: rgba(0, 0, 0, 0.5);
+      padding: 40px;
+      border-radius: 12px;
+      color: #fff;
+    }
+
+    .hero-text h2 {
+      font-size: 3rem;
+      margin-bottom: 15px;
+    }
+
+    .hero-text a {
+      background-color: #3C91E6;
+      color: white;
+      padding: 12px 25px;
+      border-radius: 6px;
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 1.1rem;
+    }
+
+    .categories {
+      max-width: 1200px;
+      margin: 3rem auto;
+      padding: 0 20px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 2rem;
+    }
+
+    .category-box {
+      background-color: #ffffff;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+      transition: 0.3s ease;
+      text-align: center;
+    }
+
+    .category-box:hover {
+      transform: scale(1.02);
+    }
+
+    .category-box img {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+    }
+
+    .category-box h3 {
+      padding: 15px;
+      font-size: 1.3rem;
+      color: #3C91E6;
+    }
+
+    footer {
+      text-align: center;
+      padding: 40px;
+      background-color: #1c1c1c;
+      color: white;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 🔝 Header -->
+  <header>
+    <div class="logo">
+      <h1>Drive Nimbus</h1>
+    </div>
+    <nav class="nav-links">
+      <a href="login.html">Login</a>
+      <a href="registration.html">Register</a>
+      <a href="cars.html">Book Now</a>
+    </nav>
+  </header>
+
+  <!-- 🌄 Hero Image with Text -->
+  <section class="hero">
+    <div class="hero-text">
+      <h2>Rent Your Perfect Ride with Drive Nimbus</h2>
+      <a href="cars.html">Explore Cars</a>
+    </div>
+  </section>
+  
+  <section style="padding: 40px; text-align: center;">
+    <h2>Search for Cars or Deals</h2>
+    <input type="text" id="searchInput" placeholder="e.g. suv diesel" style="padding: 10px; width: 60%; border-radius: 8px; border: 1px solid #ccc;" />
+  </section>
+
+  <!-- 🚘 Search Results Appear Here -->
+  <section id="searchResults" style="max-width: 1000px; margin: auto; display: grid; gap: 20px; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); padding: 0 30px 50px;">
+    <!-- Results will be injected here -->
+  </section>
+
+  <!-- 🚘 Categories Section -->
+  <section class="categories">
+    <div class="category-box">
+      <img src="https://img.freepik.com/free-psd/black-isolated-car_23-2151852894.jpg?semt=ais_hybrid&w=740" alt="SUV Cars">
+      <h3>SUV Collection</h3>
+    </div>
+    <div class="category-box">
+      <img src="https://www.pacificcarrentals.com/wp-content/uploads/2021/11/Economy.png" alt="Economy Cars">
+      <h3>Economy Cars</h3>
+    </div>
+    <div class="category-box">
+      <img src="https://news.dupontregistry.com/wp-content/uploads/2023/07/rr-main-scaled.jpg" alt="Luxury Cars">
+      <h3>Luxury Line</h3>
+    </div>
+</section>
+
+  <!-- Existing JS Files -->
+  <script src="https://cdn.jsdelivr.net/npm/@glidejs/glide"></script>
+  <script src="script.js"></script>
+
+  <!-- 🔍 SEARCH LOGIC -->
+  <script>
+    const carDatabase = [
+      { name: "BMW X5 Diesel", tags: "suv diesel", image: "https://images.unsplash.com/photo-1571607387229-d4aa70c53063?auto=format&fit=crop&w=800&q=80" },
+      { name: "Audi A3 Petrol", tags: "sedan petrol", image: "https://images.unsplash.com/photo-1600180758890-6caa0a1b9e62?auto=format&fit=crop&w=800&q=80" },
+      { name: "Mercedes GLE Electric", tags: "suv electric", image: "https://images.unsplash.com/photo-1588103958853-65c25530fc39?auto=format&fit=crop&w=800&q=80" },
+      { name: "VW Golf Diesel", tags: "compact diesel", image: "https://images.unsplash.com/photo-1620668222045-54ec5b4f6b4c?auto=format&fit=crop&w=800&q=80" }
+    ];
+
+    const input = document.getElementById("searchInput");
+    const results = document.getElementById("searchResults");
+
+    input.addEventListener("input", () => {
+      const query = input.value.toLowerCase().trim();
+      results.innerHTML = "";
+
+      if (query.length >= 2) {
+        const matched = carDatabase.filter(car => car.tags.includes(query));
+        if (matched.length === 0) {
+          results.innerHTML = "<p>No matching cars found.</p>";
+        } else {
+          matched.forEach(car => {
+            const card = `
+              <div style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 6px 18px rgba(0,0,0,0.1); text-align:center;">
+                <img src="${car.image}" style="width:100%; border-radius: 8px;" alt="${car.name}" />
+                <h3 style="margin-top: 15px; color: #3C91E6;">${car.name}</h3>
+              </div>
+            `;
+            results.innerHTML += card;
+          });
+        }
+      }
+    });
+  </script>
+
+</body>
+</html>

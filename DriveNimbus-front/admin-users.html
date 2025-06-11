@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>DriveNimbus Admin - Manage Users</title>
+<link rel="stylesheet" href="style/admin-users.css" />
+
+</head>
+<body>
+
+<h1>Admin User Management</h1>
+
+<div class="tabs">
+  <div class="tab active" onclick="showTab('list')">User List</div>
+  <div class="tab" onclick="showTab('form')">Add New User</div>
+</div>
+
+<div id="list" class="tab-content active">
+  <div id="usersList">Loading users...</div>
+</div>
+
+<div id="form" class="tab-content">
+  <h2 id="formTitle">Add New User</h2>
+  <form id="userForm">
+    <input type="hidden" id="userId" />
+    <label>Email:
+      <input type="email" id="email" required />
+    </label>
+    <label>Name:
+      <input type="text" id="name" required />
+    </label>
+    <label>Password:
+      <input type="password" id="password" placeholder="Enter password" required />
+    </label>
+    <button type="submit" class="save">Save User</button>
+    <button type="button" class="delete" style="display:none;">Delete User</button>
+    <button type="button" class="deactivate" style="display:none;">Deactivate User</button>
+    <button type="button" id="cancelBtn">Cancel</button>
+  </form>
+  <div id="message"></div>
+</div>
+
+<script>
+  const tabs = document.querySelectorAll('.tab');
+  const contents = document.querySelectorAll('.tab-content');
+  const usersList = document.getElementById('usersList');
+  const userForm = document.getElementById('userForm');
+  const formTitle = document.getElementById('formTitle');
+  const message = document.getElementById('message');
+  const userIdInput = document.getElementById('userId');
+  const emailInput = document.getElementById('email');
+  const nameInput = document.getElementById('name');
+  const passwordInput = document.getElementById('password');
+  const form = document.getElementById('userForm');
+  const deleteBtn = document.querySelector('button.delete');
+  const deactivateBtn = document.querySelector('button.deactivate');
+  const cancelBtn = document.getElementById('cancelBtn');
+
+  function showTab(id) {
+    tabs.forEach(tab => tab.classList.remove('active'));
+    contents.forEach(c => c.classList.remove('active'));
+    document.querySelector(`.tab[onclick="showTab('${id}')"]`).classList.add('active');
+    document.getElementById(id).classList.add('active');
+    if (id === 'form') resetForm();
+  }
+
+  async function loadUsers() {
+    usersList.textContent = 'Loading users...';
+    try {
+      const res = await fetch('http://localhost:8080/users');
+      const users = await res.json();
+      if (!users.length) {
+        usersList.textContent = 'No users found.';
+        return;
+      }
+      usersList.innerHTML = '';
+      users.forEach(u => {
+        const div = document.createElement('div');
+        div.className = 'user-item';
+        div.textContent = `ID: ${u.userId} | ${u.email} | ${u.fullName || ''} | Active: ${u.active !== false}`;
+        div.onclick = () => {
+          showTab('form');
+          showUserDetails(u.userId);
+        };
+        usersList.appendChild(div);
+      });
+    } catch (e) {
+      usersList.textContent = 'Error loading users.';
+      console.error(e);
+    }
+  }
+
+  async function showUserDetails(id) {
+    message.textContent = '';
+    try {
+      const res = await fetch(`http://localhost:8080/users/${id}`);
+      const user = await res.json();
+
+      userIdInput.value = user.userId;
+      emailInput.value = user.email;
+      nameInput.value = user.name || '';
+      passwordInput.value = '';
+      formTitle.textContent = `Edit User ID: ${user.userId}`;
+      deleteBtn.style.display = 'inline-block';
+      deactivateBtn.style.display = 'inline-block';
+    } catch (e) {
+      message.style.color = 'red';
+      message.textContent = 'Error fetching user details.';
+      console.error(e);
+    }
+  }
+
+  function resetForm() {
+    userIdInput.value = '';
+    emailInput.value = '';
+    nameInput.value = '';
+    passwordInput.value = '';
+    formTitle.textContent = 'Add New User';
+    deleteBtn.style.display = 'none';
+    deactivateBtn.style.display = 'none';
+    message.textContent = '';
+  }
+
+  cancelBtn.onclick = () => {
+    resetForm();
+    showTab('list');
+  };
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    message.style.color = 'black';
+    message.textContent = 'Saving...';
+
+    const id = userIdInput.value;
+    const payload = {
+      email: emailInput.value,
+      name: nameInput.value,
+    };
+    if (passwordInput.value.trim()) {
+      payload.password = passwordInput.value;
+    }
+
+    try {
+      const res = await fetch(`http://localhost:8080/users${id ? '/' + id : ''}`, {
+        method: id ? 'PUT' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (!res.ok) throw new Error(await res.text());
+      message.style.color = 'green';
+      message.textContent = id ? 'User updated successfully.' : 'User created successfully.';
+      loadUsers();
+      if (!id) resetForm();
+      if (id) showTab('list');
+    } catch (err) {
+      message.style.color = 'red';
+      message.textContent = 'Error: ' + err.message;
+    }
+  });
+
+  deleteBtn.onclick = async () => {
+    if (!userIdInput.value || !confirm('Delete this user?')) return;
+    try {
+      const res = await fetch(`http://localhost:8080/users/${userIdInput.value}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('Failed to delete user');
+      message.style.color = 'green';
+      message.textContent = 'User deleted.';
+      resetForm();
+      showTab('list');
+      loadUsers();
+    } catch (err) {
+      message.style.color = 'red';
+      message.textContent = 'Error deleting user: ' + err.message;
+    }
+  };
+
+  deactivateBtn.onclick = async () => {
+    if (!userIdInput.value) return;
+    try {
+      const res = await fetch(`http://localhost:8080/users/${userIdInput.value}/deactivate`, { method: 'PUT' });
+      if (!res.ok) throw new Error('Failed to deactivate user');
+      message.style.color = 'green';
+      message.textContent = 'User deactivated.';
+      loadUsers();
+    } catch (err) {
+      message.style.color = 'red';
+      message.textContent = 'Error: ' + err.message;
+    }
+  };
+
+  loadUsers();
+</script>
+
+</body>
+</html>

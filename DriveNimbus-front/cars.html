@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DriveNimbus - Car Listing & Bookings</title>
+  <link rel="stylesheet" href="style/cars.css" />
+  <style>
+    /* Simple tabs styling */
+    .tabs {
+      display: flex;
+      justify-content: center;
+      margin: 20px 0;
+      border-bottom: 2px solid #3C91E6;
+      cursor: pointer;
+    }
+    .tab {
+      padding: 10px 20px;
+      margin: 0 5px;
+      border: 2px solid transparent;
+      border-bottom: none;
+      font-weight: bold;
+      color: #3C91E6;
+      transition: background-color 0.3s ease;
+    }
+    .tab.active {
+      border: 2px solid #3C91E6;
+      border-bottom: 2px solid white;
+      border-radius: 6px 6px 0 0;
+      background-color: #e9f1f9;
+    }
+    .content {
+      max-width: 900px;
+      margin: auto;
+      padding: 10px;
+      background: #fff;
+      border: 2px solid #3C91E6;
+      border-top: none;
+      border-radius: 0 0 6px 6px;
+      min-height: 300px;
+    }
+    /* Cars container */
+    .car-list, .booking-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+    }
+    /* Booking card styling */
+    .booking-card {
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: 15px 20px;
+      background-color: #f8f8f8;
+      box-shadow: 0 2px 5px rgb(0 0 0 / 0.1);
+    }
+    .booking-card h3 {
+      margin-top: 0;
+      color: #0056b3;
+    }
+  </style>
+</head>
+<body>
+
+  <h1 style="text-align:center;">DriveNimbus Dashboard</h1>
+
+  <div class="tabs">
+    <div id="carsTab" class="tab active">Available Cars</div>
+    <div id="bookingsTab" class="tab">My Bookings</div>
+  </div>
+
+  <div class="content">
+    <div id="carsContent">
+      <div class="car-list" id="carList">
+        <!-- Cars will be loaded here -->
+      </div>
+    </div>
+    <div id="bookingsContent" style="display:none;">
+      <div class="booking-list" id="bookingList">
+        <!-- Bookings will be loaded here -->
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Helper function to format price with commas
+    function formatPrice(price) {
+      return price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    // Fetch and render cars
+    function loadCars() {
+      fetch('http://localhost:8080/cars')
+        .then(response => response.json())
+        .then(cars => {
+          const container = document.getElementById('carList');
+          if (!cars.length) {
+            container.innerHTML = '<p>No cars available at the moment.</p>';
+            return;
+          }
+
+          container.innerHTML = cars.map(car => `
+            <div class="car-card">
+              <img src="${car.imageURL}" alt="${car.brand} ${car.model}" style="width:100%; border-radius:8px; height:150px; object-fit:cover;"/>
+              <h2>${car.brand} ${car.model} (${car.year})</h2>
+              <div class="car-info">
+                <p><strong>Fuel:</strong> ${car.fuelType}</p>
+                <p><strong>Mileage:</strong> ${car.mileage} km</p>
+                <p><strong>Price:</strong> $${formatPrice(car.price)}</p>
+                <p><strong>Status:</strong> ${car.status}</p>
+              </div>
+              <a class="book-button" href="car.html?id=${car.carId}" style="display:inline-block; margin-top: 10px; padding:10px 15px; background:#3C91E6; color:white; border-radius:6px; text-decoration:none;">View Details</a>
+            </div>
+          `).join('');
+        })
+        .catch(error => {
+          console.error('Error fetching cars:', error);
+          document.getElementById('carList').innerHTML = '<p>Failed to load cars. Please try again later.</p>';
+        });
+    }
+
+    // Fetch and render bookings for userId = 1 (replace as needed)
+    // Fetch and render bookings for userId from localStorage
+function loadBookings() {
+  const userId = localStorage.getItem('userId');
+  const container = document.getElementById('bookingList');
+  
+  if (!userId) {
+    container.innerHTML = '<p>User not logged in. Please log in to see your bookings.</p>';
+    return;
+  }
+
+  fetch(`http://localhost:8080/users/${userId}/bookings/upcoming`)
+    .then(response => {
+      if (response.status === 204) return []; // no content
+      return response.json();
+    })
+    .then(bookings => {
+      if (!bookings.length) {
+        container.innerHTML = '<p>No upcoming bookings found.</p>';
+        return;
+      }
+      container.innerHTML = bookings.map(booking => `
+        <div class="booking-card">
+          <h3>Booking ID: ${booking.bookingId}</h3>
+          <p><strong>Car:</strong> ${booking.car.brand} ${booking.car.model} (${booking.car.year})</p>
+          <p><strong>Pickup Date:</strong> ${new Date(booking.pickupDate).toLocaleDateString()}</p>
+          <p><strong>Return Date:</strong> ${new Date(booking.returnDate).toLocaleDateString()}</p>
+          <p><strong>Status:</strong> ${booking.status}</p>
+        </div>
+      `).join('');
+    })
+    .catch(error => {
+      console.error('Error fetching bookings:', error);
+      container.innerHTML = '<p>Failed to load bookings. Please try again later.</p>';
+    });
+}
+
+
+    // Tab switching logic
+    const carsTab = document.getElementById('carsTab');
+    const bookingsTab = document.getElementById('bookingsTab');
+    const carsContent = document.getElementById('carsContent');
+    const bookingsContent = document.getElementById('bookingsContent');
+
+    carsTab.addEventListener('click', () => {
+      carsTab.classList.add('active');
+      bookingsTab.classList.remove('active');
+      carsContent.style.display = 'block';
+      bookingsContent.style.display = 'none';
+      loadCars();
+    });
+
+    bookingsTab.addEventListener('click', () => {
+      bookingsTab.classList.add('active');
+      carsTab.classList.remove('active');
+      carsContent.style.display = 'none';
+      bookingsContent.style.display = 'block';
+      loadBookings();
+    });
+
+    // Initial load
+    loadCars();
+  </script>
+</body>
+</html>

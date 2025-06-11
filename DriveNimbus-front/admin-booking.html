@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>DriveNimbus Admin - Manage Bookings</title>
+<link rel="stylesheet" href="style/admin-booking.css" />
+</head>
+<body>
+
+<h1>Admin Booking Management</h1>
+
+<div id="bookingsList">Loading bookings...</div>
+
+<div id="bookingDetails">
+  <h2>Booking Details</h2>
+  <div id="detailsContent"></div>
+  <div id="message"></div>
+  <div style="margin-top: 20px;">
+    <button class="approve">Approve</button>
+    <button class="reject">Reject</button>
+    <button class="cancel">Cancel</button>
+    <button onclick="closeDetails()">Close</button>
+  </div>
+</div>
+
+<script>
+  const bookingsList = document.getElementById('bookingsList');
+  const bookingDetails = document.getElementById('bookingDetails');
+  const detailsContent = document.getElementById('detailsContent');
+  const message = document.getElementById('message');
+
+  let currentBookingId = null;
+
+  // Fetch and list all bookings
+  async function loadBookings() {
+    bookingsList.textContent = 'Loading bookings...';
+    try {
+      const res = await fetch('http://localhost:8080/bookings');
+      if (!res.ok) throw new Error('Failed to fetch bookings');
+      const bookings = await res.json();
+
+      if (bookings.length === 0) {
+        bookingsList.textContent = 'No bookings found.';
+        return;
+      }
+
+      bookingsList.innerHTML = '';
+      bookings.forEach(b => {
+        const div = document.createElement('div');
+        div.className = 'booking-item';
+        div.textContent = `Booking #${b.bookingId} — User: ${b.user?.email || 'N/A'} — Car: ${b.car?.brand || ''} ${b.car?.model || ''} — Pickup: ${b.pickupDate} — Status: ${b.bookingStatus || 'Pending'}`;
+        div.onclick = () => showBookingDetails(b.bookingId);
+        bookingsList.appendChild(div);
+      });
+    } catch (error) {
+      bookingsList.textContent = 'Error loading bookings.';
+      console.error(error);
+    }
+  }
+
+  // Show booking details
+  async function showBookingDetails(id) {
+    currentBookingId = id;
+    bookingDetails.style.display = 'block';
+    detailsContent.textContent = 'Loading booking details...';
+    message.textContent = '';
+    try {
+      const res = await fetch(`http://localhost:8080/bookings/${id}`);
+      if (!res.ok) throw new Error('Booking not found');
+      const booking = await res.json();
+
+      detailsContent.innerHTML = `
+        <p><strong>Booking ID:</strong> ${booking.bookingId}</p>
+        <p><strong>User:</strong> ${booking.user?.fullName || 'N/A'}</p>
+        <p><strong>Car:</strong> ${booking.car?.brand || ''} ${booking.car?.model || ''} (${booking.car?.year || ''})</p>
+        <p><strong>Pickup Date:</strong> ${booking.pickupDate}</p>
+        <p><strong>Return Date:</strong> ${booking.returnDate || 'N/A'}</p>
+        <p><strong>Status:</strong> ${booking.bookingStatus || 'Pending'}</p>
+      `;
+    } catch (error) {
+      detailsContent.textContent = 'Error fetching booking details.';
+      console.error(error);
+    }
+  }
+
+  // Approve booking
+  document.querySelector('button.approve').addEventListener('click', async () => {
+    if (!currentBookingId) return;
+    message.textContent = 'Approving...';
+    try {
+      const res = await fetch(`http://localhost:8080/bookings/${currentBookingId}/approve`, {
+        method: 'PUT'
+      });
+      if (!res.ok) throw new Error(await res.text());
+      message.style.color = 'green';
+      message.textContent = 'Booking approved!';
+      loadBookings();
+      showBookingDetails(currentBookingId);
+    } catch (error) {
+      message.style.color = 'red';
+      message.textContent = 'Error approving booking: ' + error.message;
+    }
+  });
+
+  // Reject booking
+  document.querySelector('button.reject').addEventListener('click', async () => {
+    if (!currentBookingId) return;
+    message.textContent = 'Rejecting...';
+    try {
+      const res = await fetch(`http://localhost:8080/bookings/${currentBookingId}/refuse`, {
+        method: 'PUT'
+      });
+      if (!res.ok) throw new Error(await res.text());
+      message.style.color = 'green';
+      message.textContent = 'Booking rejected!';
+      loadBookings();
+      showBookingDetails(currentBookingId);
+    } catch (error) {
+      message.style.color = 'red';
+      message.textContent = 'Error rejecting booking: ' + error.message;
+    }
+  });
+
+  // Cancel booking
+  document.querySelector('button.cancel').addEventListener('click', async () => {
+    if (!currentBookingId) return;
+    message.textContent = 'Cancelling...';
+    try {
+      const res = await fetch(`http://localhost:8080/bookings/${currentBookingId}`, {
+        method: 'DELETE'
+      });
+      if (!res.ok) throw new Error(await res.text());
+      message.style.color = 'green';
+      message.textContent = 'Booking cancelled!';
+      loadBookings();
+      bookingDetails.style.display = 'none';
+    } catch (error) {
+      message.style.color = 'red';
+      message.textContent = 'Error cancelling booking: ' + error.message;
+    }
+  });
+
+  // Close details panel
+  function closeDetails() {
+    bookingDetails.style.display = 'none';
+    currentBookingId = null;
+    message.textContent = '';
+  }
+
+  loadBookings();
+</script>
+
+</body>
+</html>

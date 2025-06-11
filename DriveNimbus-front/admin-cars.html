@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Admin - Manage Cars</title>
+ <link rel="stylesheet" href="style/admin-cars.css" />
+
+</head>
+<body>
+
+  <h1>Admin - Manage Cars</h1>
+
+  <div class="tabs">
+    <div class="tab active" data-tab="carsListTab">Cars List</div>
+    <div class="tab" data-tab="addCarTab">Add New Car</div>
+  </div>
+
+  <div id="carsListTab" class="tab-content active">
+    <h2>Cars List</h2>
+    <table id="carsTable">
+      <thead>
+        <tr>
+          <th>ID</th><th>Brand</th><th>Model</th><th>Year</th><th>Fuel</th><th>Mileage</th><th>Price</th><th>Status</th><th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Cars rows will be inserted here -->
+      </tbody>
+    </table>
+    <div id="carsMessage"></div>
+  </div>
+
+  <div id="addCarTab" class="tab-content">
+    <h2>Add New Car</h2>
+    <form id="addCarForm">
+      <label>Brand:<input type="text" id="brand" required /></label>
+      <label>Model:<input type="text" id="model" required /></label>
+      <label>Year:<input type="number" id="year" required min="1900" max="2100" /></label>
+      <label>Fuel Type:
+        <select id="fuelType" required>
+          <option value="">Select fuel type</option>
+          <option value="PETROL">PETROL</option>
+          <option value="DIESEL">DIESEL</option>
+          <option value="ELECTRIC">ELECTRIC</option>
+          <option value="HYBRID">HYBRID</option>
+        </select>
+      </label>
+      <label>Mileage (km):<input type="number" id="mileage" required min="0" /></label>
+      <label>Price ($):<input type="number" id="price" required min="0" step="0.01" /></label>
+      <label>Status:
+        <select id="status" required>
+          <option value="">Select status</option>
+          <option value="AVAILABLE">AVAILABLE</option>
+          <option value="SOLD">SOLD</option>
+          <option value="MAINTENANCE">MAINTENANCE</option>
+        </select>
+      </label>
+      <label>Image URL:<input type="url" id="imageURL" required /></label>
+      <label>Description:<textarea id="description" rows="3" required></textarea></label>
+      <button type="submit">Add Car</button>
+      <div id="addCarMessage"></div>
+    </form>
+  </div>
+
+<script>
+  // Tab switching logic
+  const tabs = document.querySelectorAll('.tab');
+  const tabContents = document.querySelectorAll('.tab-content');
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      const target = tab.getAttribute('data-tab');
+      tabContents.forEach(tc => {
+        tc.style.display = tc.id === target ? 'block' : 'none';
+      });
+    });
+  });
+
+  // Load cars and render table
+  async function loadCars() {
+    const carsTableBody = document.querySelector('#carsTable tbody');
+    const carsMessage = document.getElementById('carsMessage');
+    carsTableBody.innerHTML = '';
+    carsMessage.textContent = '';
+    try {
+      const response = await fetch('http://localhost:8080/cars');
+      if (!response.ok) throw new Error('Failed to fetch cars');
+      const cars = await response.json();
+      if (cars.length === 0) {
+        carsMessage.textContent = 'No cars found.';
+        return;
+      }
+      cars.forEach(car => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${car.carId}</td>
+          <td>${car.brand}</td>
+          <td>${car.model}</td>
+          <td>${car.year}</td>
+          <td>${car.fuelType}</td>
+          <td>${car.mileage}</td>
+          <td>$${car.price.toFixed(2)}</td>
+          <td>${car.status}</td>
+          <td>
+            <button onclick="deleteCar(${car.carId})">Delete</button>
+          </td>
+        `;
+        carsTableBody.appendChild(tr);
+      });
+    } catch (error) {
+      carsMessage.style.color = 'red';
+      carsMessage.textContent = 'Error loading cars: ' + error.message;
+    }
+  }
+
+  // Delete car
+  async function deleteCar(carId) {
+    if (!confirm('Are you sure you want to delete this car?')) return;
+    try {
+      const response = await fetch(`http://localhost:8080/cars/${carId}`, { method: 'DELETE' });
+      if (response.ok) {
+        alert('Car deleted successfully.');
+        loadCars();
+      } else {
+        alert('Failed to delete car.');
+      }
+    } catch (error) {
+      alert('Network error: ' + error.message);
+    }
+  }
+
+  // Add new car form submission
+  document.getElementById('addCarForm').addEventListener('submit', async function(event) {
+    event.preventDefault();
+
+    const payload = {
+      brand: document.getElementById('brand').value,
+      model: document.getElementById('model').value,
+      year: parseInt(document.getElementById('year').value),
+      fuelType: document.getElementById('fuelType').value,
+      mileage: parseInt(document.getElementById('mileage').value),
+      price: parseFloat(document.getElementById('price').value),
+      status: document.getElementById('status').value,
+      imageURL: document.getElementById('imageURL').value,
+      description: document.getElementById('description').value,
+    };
+
+    const messageDiv = document.getElementById('addCarMessage');
+    messageDiv.textContent = '';
+    try {
+      const response = await fetch('http://localhost:8080/cars', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (response.ok) {
+        messageDiv.style.color = 'green';
+        messageDiv.textContent = 'Car added successfully!';
+        this.reset();
+        loadCars();
+        // Switch back to Cars List tab
+        document.querySelector('.tab[data-tab="carsListTab"]').click();
+      } else {
+        const errText = await response.text();
+        messageDiv.style.color = 'red';
+        messageDiv.textContent = 'Error adding car: ' + errText;
+      }
+    } catch (error) {
+      messageDiv.style.color = 'red';
+      messageDiv.textContent = 'Network error: ' + error.message;
+    }
+  });
+
+  // Initial load
+  loadCars();
+</script>
+
+</body>
+</html>

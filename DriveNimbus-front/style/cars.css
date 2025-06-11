@@ -1,0 +1,103 @@
+/* cars.css */
+
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  max-width: 900px;
+  margin: 3rem auto;
+  padding: 0 1.5rem;
+  background: #f9fafc;
+  color: #333;
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: 2.5rem;
+  color: #1f6ed4;
+  font-weight: 700;
+  font-size: 2.4rem;
+}
+
+.car-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 2rem;
+}
+
+.car-card {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 12px 20px rgba(31, 110, 212, 0.15);
+  border: 1px solid #ddd;
+  padding: 1.3rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
+  cursor: pointer;
+}
+
+.car-card:hover {
+  box-shadow: 0 18px 30px rgba(31, 110, 212, 0.3);
+  transform: translateY(-6px);
+}
+
+.car-card img {
+  max-width: 100%;
+  border-radius: 10px;
+  margin-bottom: 1.2rem;
+  object-fit: cover;
+  height: 150px;
+  width: 100%;
+}
+
+.car-card h2 {
+  margin: 0 0 0.7rem 0;
+  font-size: 1.25rem;
+  text-align: center;
+  color: #1f6ed4;
+  font-weight: 700;
+}
+
+.car-info {
+  text-align: center;
+  font-size: 0.95rem;
+  color: #555;
+  margin-bottom: 1.5rem;
+  line-height: 1.5;
+}
+
+.car-info p {
+  margin: 0.25rem 0;
+}
+
+.book-button {
+  background-color: #1f6ed4;
+  color: #fff;
+  border: none;
+  padding: 0.65rem 1.2rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 1rem;
+  text-decoration: none;
+  transition: background-color 0.3s ease;
+  display: inline-block;
+  width: 100%;
+  text-align: center;
+  user-select: none;
+}
+
+.book-button:hover {
+  background-color: #155aab;
+}
+
+@media (max-width: 480px) {
+  body {
+    margin: 1.5rem 1rem;
+  }
+  h1 {
+    font-size: 1.8rem;
+  }
+  .car-card img {
+    height: 120px;
+  }
+}

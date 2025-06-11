@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>DriveNimbus | Car Details</title>
+  <link rel="stylesheet" href="style/car.css" />
+
+</head>
+<body>
+
+<div class="car-info" id="carInfo">Loading car details...</div>
+
+<div class="booking-form" style="display:none;" id="bookingSection">
+  <h3>Book this car</h3>
+  <form id="bookingForm">
+    <label>Pickup Date: <input type="date" id="pickupDate" required /></label>
+    <label>Dropoff Date: <input type="date" id="dropoffDate" required /></label>
+    <!-- Hidden inputs for userId and carId -->
+    <input type="hidden" id="userId" value="1" /> <!-- Replace with real logged-in user ID -->
+    <input type="hidden" id="carId" />
+    <button type="submit">Book Now</button>
+    <div id="message"></div>
+  </form>
+</div>
+
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const carId = params.get('id');
+
+  if (!carId) {
+    document.getElementById('carInfo').innerHTML = '<p>No car selected.</p>';
+  } else {
+    fetch(`http://localhost:8080/cars/${carId}`)
+      .then(res => {
+        if (!res.ok) throw new Error('Car not found');
+        return res.json();
+      })
+      .then(car => {
+        document.getElementById("carInfo").innerHTML = `
+          <h2>${car.brand} ${car.model} (${car.year})</h2>
+          <img src="${car.imageURL}" alt="${car.model}" style="max-width: 300px; border-radius: 10px;" />
+          <p><strong>Fuel Type:</strong> ${car.fuelType}</p>
+          <p><strong>Mileage:</strong> ${car.mileage} km</p>
+          <p><strong>Price:</strong> $${car.price.toLocaleString()}</p>
+          <p><strong>Status:</strong> ${car.status}</p>
+          <p><strong>Description:</strong> ${car.description}</p>
+        `;
+        document.getElementById('bookingSection').style.display = 'block';
+        document.getElementById('carId').value = car.carId;
+      })
+      .catch(err => {
+        document.getElementById("carInfo").innerHTML = `<p>Error fetching car details.</p>`;
+        console.error(err);
+      });
+
+  }
+
+  document.getElementById('bookingForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const pickupDate = document.getElementById('pickupDate').value;
+    const returnDate = document.getElementById('dropoffDate').value;
+    const carId = new URLSearchParams(window.location.search).get('id');
+
+    // Get userId from localStorage
+    const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
+    if (!loggedInUser || !loggedInUser.userId) {
+      alert('You must be logged in to book a car.');
+      return;
+    }
+    const userId = loggedInUser.userId;
+
+    if (!pickupDate || !returnDate) {
+      alert('Please select both pickup and return dates.');
+      return;
+    }
+
+    const bookingData = {
+      pickupDate: pickupDate,
+      returnDate: returnDate,
+      car: { carId: parseInt(carId) },
+      user: loggedInUser
+    };
+
+    fetch(`http://localhost:8080/users/${userId}/bookings`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(bookingData)
+    })
+    .then(response => {
+      if (!response.ok) {
+        return response.text().then(text => { throw new Error(text || 'Booking failed') });
+      }
+      return response.json();
+    })
+    .then(data => {
+      document.getElementById('message').textContent = 'Booking successful! Booking ID: ' + data.bookingId;
+    })
+    .catch(error => {
+      document.getElementById('message').textContent = 'Error: ' + error.message;
+    });
+  });
+</script>
+
+
+
+</body>
+</html>

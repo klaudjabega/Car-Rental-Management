@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>DriveNimbus | Upcoming Bookings</title>
+  <link rel="stylesheet" href="style/bookings.css" />
+</head>
+<body>
+
+<div class="container">
+  <h1>Your Upcoming Bookings</h1>
+  <div id="bookingsContainer">Loading bookings...</div>
+</div>
+
+<script>
+  const container = document.getElementById('bookingsContainer');
+
+  // Get logged in user from localStorage
+  const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
+
+  if (!loggedInUser || !loggedInUser.userId) {
+    container.innerHTML = '<p class="no-bookings">You need to be logged in to view your bookings.</p>';
+  } else {
+    fetch(`http://localhost:8080/users/${loggedInUser.userId}/bookings/upcoming`)
+      .then(response => {
+        if (response.status === 204) {
+          container.innerHTML = '<p class="no-bookings">You have no upcoming bookings.</p>';
+          return null;
+        }
+        if (!response.ok) throw new Error('Failed to fetch bookings');
+        return response.json();
+      })
+      .then(bookings => {
+        if (!bookings) return;
+
+        container.innerHTML = '';
+
+        bookings.forEach(booking => {
+          const bookingDiv = document.createElement('div');
+          bookingDiv.className = 'booking';
+
+          bookingDiv.innerHTML = `
+            <h3>Booking ID: ${booking.bookingId}</h3>
+            <p><strong>Car:</strong> ${booking.car.brand} ${booking.car.model} (${booking.car.year})</p>
+            <p><strong>Pickup Date:</strong> ${new Date(booking.pickupDate).toLocaleDateString()}</p>
+            <p><strong>Return Date:</strong> ${new Date(booking.returnDate).toLocaleDateString()}</p>
+            <p><strong>Status:</strong> ${booking.status || 'N/A'}</p>
+          `;
+
+          container.appendChild(bookingDiv);
+        });
+      })
+      .catch(err => {
+        container.innerHTML = `<p class="no-bookings">Error loading bookings: ${err.message}</p>`;
+      });
+  }
+</script>
+
+</body>
+</html>
