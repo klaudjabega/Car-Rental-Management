@@ -1,0 +1,41 @@
+-- -- data.sql
+--
+-- -- Insert data into Users table
+-- INSERT INTO users (user_id, full_name, email, password_hash, phone_number, address, profile_picture, user_role, is_active, created_at, email_verified, verification_token)
+-- VALUES
+--     (1, 'John Doe', 'john.doe@example.com', 'password_hash_1', '1234567890', '123 Main St', 'https://randomuser.me/api/portraits/women/1.jpg', 'USER', TRUE, NOW(), TRUE, NULL),
+--     (2, 'Jane Smith', 'jane.smith@example.com', 'password_hash_2', '0987654321', '456 Elm St', 'https://randomuser.me/api/portraits/men/2.jpg', 'ADMIN', TRUE, NOW(), TRUE, NULL);
+--
+-- INSERT INTO car (car_id, brand, model, year, fuel_type, mileage, price, status, imageurl, description)
+-- VALUES
+--     (1, 'Toyota', 'Camry', 2020, 'PETROL', 15000, 25000.00, 'AVAILABLE', 'https://www.example.com/toyota_camry.jpg', 'A reliable sedan with great fuel economy.'),
+--     (2, 'Honda', 'Civic', 2021, 'DIESEL', 10000, 22000.00, 'AVAILABLE', 'https://www.example.com/honda_civic.jpg', 'A compact car with excellent handling.');
+--
+-- -- Insert data into Booking table
+-- INSERT INTO booking (booking_id, user_id, car_id, pickup_date, return_date, booking_status, created_at)
+-- VALUES
+--     (1, 1, 1, '2023-05-01', '2023-05-07', 'COMPLETED', NOW()),
+--     (2, 2, 2, '2023-06-15', '2023-06-20', 'PENDING', NOW());
+--
+-- -- Insert data into Maintenance table
+-- INSERT INTO maintenance (maintenance_id, car_car_id, start_date, end_date, status, description)
+-- VALUES
+--     (1, 1, '2023-04-01', '2023-04-05', 'COMPLETED', 'Oil change and tire check.');
+--
+-- -- Insert data into Payment table
+-- INSERT INTO payment (payment_id, booking_booking_id, amount, payment_method, payment_status, paid_at)
+-- VALUES
+--     (1, 1, 200.00, 'CREDIT_CARD', 'PAID', '2023-05-01'),
+--     (2, 2, 180.00, 'DEBIT_CARD', 'PENDING', '2023-06-15');
+--
+-- -- Insert data into Review table
+-- INSERT INTO review (review_id, car_car_id, user_user_id, review_text, rating, created_at)
+-- VALUES
+--     (1, 1, 1, 'Great car, smooth drive!', 5, NOW()),
+--     (2, 2, 2, 'The Civic is a good choice for city driving.', 4, NOW());
+--
+-- -- Insert data into DiscountCode table
+-- INSERT INTO discount_code (code_id, booking_booking_id, discount_code, discount_amount, expiry_date, is_active)
+-- VALUES
+--     (1, 1, 'DISCOUNT10', 10.00, '2023-06-30', TRUE),
+--     (2, 2, 'DISCOUNT15', 15.00, '2023-07-15', TRUE);
